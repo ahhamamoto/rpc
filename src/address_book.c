@@ -28,9 +28,6 @@ void list(MYSQL *conn);
 // exibe um menu para a escolha da opcao a ser executada
 void menu(void);
 
-// executa uma operacao da acordo com a escolha do usuario
-void execute(int choice);
-
 int main(int argc, char **argv) {
   MYSQL *conn;
   char *server = "localhost";
@@ -44,7 +41,6 @@ int main(int argc, char **argv) {
 	do {
 		menu();
 		scanf("%d", &choice);
-		// execute(choice);
 	} while (choice != 0);
 
   mysql_close(conn);
@@ -88,8 +84,8 @@ void list(MYSQL *conn) {
   MYSQL_ROW *row;
   mysql_query(conn, "SELECT * FROM teste");
   res = mysql_use_result(conn);
-  while ((row = mysql_fetch_row(res)) != NULL) {
-    printf("%s %s %s\n", row[0], row[1], row[2]);
+  while ((row = (MYSQL_ROW *) mysql_fetch_row(res)) != NULL) {
+    printf("%s %s %s\n", (char *) row[0], (char *) row[1], (char *) row[2]);
   }
   mysql_free_result(res);
 }
@@ -102,17 +98,4 @@ void menu(void) {
 	printf("4 - Consultar uma entrada(nao implementada)\n");
 	printf("5 - Listar as entradas\n");
 	printf("0 - Sair do programa\n");
-}
-
-void execute(int choice) {
-	switch (choice) {
-		case 0:
-		case 1:
-		case 2:
-		case 3:
-		case 4:
-		case 5:
-		default:
-		printf("Essa operacao nao existe\n\n");
-	}
 }
