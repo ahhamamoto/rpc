@@ -13,7 +13,7 @@ struct entry {
 
 int initialize(MYSQL *conn, FILE *file);
 void insert(MYSQL *conn, entry *data);
-int alter(MYSQL *conn, entry *data);
+int alter(MYSQL *conn, entry *old, entry *new);
 int delete(MYSQL *conn, entry *data);
 void list(MYSQL *conn);
 
@@ -28,11 +28,18 @@ int main(int argc, char **argv) {
   mysql_real_connect(conn, server, user, password, database, 0, NULL, 0);
   
   entry *data = malloc(sizeof(entry));
+  entry *new = malloc(sizeof(entry));
+  new->name = "joelma ";
+  new->addr = "é um ";
+  new->phone = "baitola";
   data->name = "Joelma ";
   data->addr = "é um ";
   data->phone = "viadão";
   insert(conn, data);
   list(conn);
+  alter(conn, data, new);
+  list(conn);
+  delete(conn, data);
 
   mysql_close(conn);
   
@@ -52,6 +59,21 @@ void insert(MYSQL *conn, entry *data) {
   int n;
   char query[100];
   n = sprintf(query, "INSERT INTO teste VALUES('%s', '%s', '%s')", data->name, data->addr, data->phone);
+  mysql_query(conn, query);
+}
+
+int alter(MYSQL *conn, entry *old, entry *new) {
+  int n;
+  char query[100];
+  n = sprintf(query, "UPDATE teste SET name='%s', address='%s', phone='%s' WHERE name='%s'", new->name, new->addr, new->phone, old->name);
+  printf("%s\n", query);
+  if (!mysql_query(conn, query)) printf("%s\n", mysql_error(conn));
+} 
+
+int delete(MYSQL *conn, entry *data) {
+  int n;
+  char query[100];
+  n = sprintf(query, "DELETE FROM teste WHERE name='%s'", data->name);
   mysql_query(conn, query);
 }
 
