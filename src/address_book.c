@@ -10,14 +10,28 @@ struct entry {
   char *phone;
 };
 
+// abre um arquivos e carrega os seus dados no banco
 int initialize(MYSQL *conn, FILE *file);
+
+// insere uma entrada no banco de dados
 void insert(MYSQL *conn, entry *data);
+
+// altera uma das entradas no banco de dados
 int alter(MYSQL *conn, entry *old, entry *new);
+
+// deleta uma das entradas no banco
 int delete(MYSQL *conn, entry *data);
+
+// faz uma listagem das entradas no banco de dados
 void list(MYSQL *conn);
 
+// exibe um menu para a escolha da opcao a ser executada
+void menu(void);
+
+// executa uma operacao da acordo com a escolha do usuario
+void execute(int choice);
+
 int main(int argc, char **argv) {
-  printf("Hello!\n");
   MYSQL *conn;
   char *server = "localhost";
   char *user = "root";
@@ -25,20 +39,13 @@ int main(int argc, char **argv) {
   char *database = "aloha";
   conn = mysql_init(NULL);
   mysql_real_connect(conn, server, user, password, database, 0, NULL, 0);
-  
-  entry *data = malloc(sizeof(entry));
-  entry *new = malloc(sizeof(entry));
-  new->name = "joelma ";
-  new->addr = "é um ";
-  new->phone = "baitola";
-  data->name = "Joelma ";
-  data->addr = "é um ";
-  data->phone = "viadão";
-  insert(conn, data);
-  list(conn);
-  alter(conn, data, new);
-  list(conn);
-  delete(conn, data);
+		
+	int choice;
+	do {
+		menu();
+		scanf("%d", &choice);
+		// execute(choice);
+	} while (choice != 0);
 
   mysql_close(conn);
   
@@ -85,4 +92,27 @@ void list(MYSQL *conn) {
     printf("%s %s %s\n", row[0], row[1], row[2]);
   }
   mysql_free_result(res);
+}
+
+void menu(void) {
+	printf("Escolha uma das opcoes abaixo:\n\n");
+	printf("1 - Inicializar\n");
+	printf("2 - Inserir uma entrada\n");
+	printf("3 - Remover uma entrada\n");
+	printf("4 - Consultar uma entrada(nao implementada)\n");
+	printf("5 - Listar as entradas\n");
+	printf("0 - Sair do programa\n");
+}
+
+void execute(int choice) {
+	switch (choice) {
+		case 0:
+		case 1:
+		case 2:
+		case 3:
+		case 4:
+		case 5:
+		default:
+		printf("Essa operacao nao existe\n\n");
+	}
 }
