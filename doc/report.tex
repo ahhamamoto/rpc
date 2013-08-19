@@ -1,13 +1,295 @@
 \documentclass[12pt,a4paper]{article}
 
 \usepackage[utf8]{inputenc}
+\usepackage[brazil]{babel}
+\usepackage{indentfirst}
+\usepackage{moreverb}
+\usepackage{listings}
+\usepackage{color}
+
+\definecolor{dkgreen}{rgb}{0,0.6,0}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+\definecolor{mauve}{rgb}{0.58,0,0.82}
+
+\lstset{frame=tb,
+	language=Python,
+	aboveskip=3mm,
+	belowskip=3mm,
+	showstringspaces=false,
+	columns=flexible,
+	basicstyle={\small\ttfamily},
+	numbers=none,
+	numberstyle=\tiny\color{gray},
+	keywordstyle=\color{blue},
+	commentstyle=\color{dkgreen},
+	stringstyle=\color{mauve},
+	breaklines=true,
+	breakatwhitespace=true
+	tabsize=3
+}
+
+\renewcommand{\lstlistingname}{Código}
 
 \author{Anderson Hiroshi Hamamoto \\ Natan de Almeida Laverde}
 \date{}
-\title{Agenda Eltrônica com RPC}
+\title{Agenda Eletrônica com RPC}
 
 \begin{document}
 
 \maketitle
 
+\section{Introdução ao RPC}
+
+O \textit{RPC(Remote Procedure Call)}\cite{rfc1050} define um protocolo para execução de procedimentos
+remotos em computadore ligados em rede\cite{penta2}. O RPC é uma técnica muito poderosa para
+criar aplicações no estilo cliente-servidor distribuídas\cite{marshall}. O RPC consegue deixar
+transparente pro programador a interação entre a parte cliente e a parte servidor do 
+sistema, assim, o servidor e o cliente podem estar ou não na mesma máquina, compartilhando
+o mesmo espaço físico, ou podem estar conectados por meio de um servidor. 
+
+Um exemplo de aplicação do RPC é o NFS(Network File System)\cite{rfc1094}.
+Esse sistema provedencia um método transparente para para acesso remoto de dados 
+compartilhados sobre a rede.
+
+\section{Tutorial de RPC}
+
+Nesse breve tutorial será feito uma aplicação que usa o RPC e retorna a soma e a subtração 
+entre dois números.
+
+Primeiro deve ser feito um arquivo com a extensão .x, o qual será usado para gerar os stubs. 
+Stub é a parte responsável do sistema pra fazer com que a comunicaçnao das partes funcionam
+corretamente, garantir que o cliente e o servidor consigam se comunicar. Nesse caso faremos
+um arquivo calcula.x.
+
+\lstset{language=C}
+\begin{lstlisting}[caption=calcula.x]
+	struct operandos {
+	       int x;
+	       int y;
+	};
+
+	program PROG {
+		version VERSAO {
+			int ADD(operandos) = 1;
+			int SUB(operandos) = 2;
+		} = 100;
+	} = 55555555;
+\end{lstlisting}
+
+A struct é usada para passar parâmetros entre o cliente e o servidor. O PROG e a VERSAO
+são usadas como identificadores pelo RPC e o ADD e o SUB são as funções que o cliente pode
+requisitar do servidor com um identificador.
+
+Agora é necessário usar o ``rpcgen'' para gerar os arquivos necessários. No terminal 
+coloque o comando ``rpcgen -a calcula.x'', isso vai gerar os arquivos:
+
+\begin{itemize}
+	\item calcula.h - cabeçalho da interface das funções e da struct que são usadas no programa
+	\item calcula\_svc.c - stub do servidor
+	\item calcula\_clnt.c - stub do cliente
+	\item calcula\_client.c - programador que define o que acontece no lado do cliente
+	\item calcula\_server.c - programador define o que o que o servidor faz com a requisição do cliente
+	\item calcula.xdr - filtros de representações de dados externos(eXternal Data Representation)\cite{rfc1014}
+\end{itemize}
+
+Os arquivos que precisamos nos preocupar são o calcula\_client.c e o calcula\_server.c, que são
+o que programador implementa para fazer uso do RPC. No arquivo calcula\_client.c é colocado tudo
+o que o programador quer que ocorra no lado do cliente e calcula\_server.c é colocado o que 
+o servidor executa.
+
+No nosso exemplo tanto o servidor como cliente não tem muito o que ser feito.
+
+\begin{lstlisting}[caption=client\_client.c]
+	int add(CLIENT *clnt, int x, int y) {
+	  operandos ops;
+	  int *result;
+
+	  ops.x = x;
+	  ops.y = y;
+
+	  result = add_100(&ops, clnt);
+	  if (result == NULL) {
+	    fprintf(stderr, "Problema na chamada RPC\n");
+	    exit(0);
+	  }
+	  return (*result);
+	}
+
+	int sub(CLIENT *clnt, int x, int y) {
+	  operandos ops;
+	  int *result;
+
+	  ops.x = x;
+	  ops.y = y;
+
+	  result = sub_100(&ops, clnt);
+	  if (result == NULL) {
+	    fprintf(stderr, "Problema na chamada RPC\n");
+	    exit(0);
+	  }
+	  return (*result);
+	}
+	
+	int main(int argc, char **argv) {
+	  CLIENT *clnt;
+	  int x, y;
+
+	  if (argc != 4) {
+	    fprintf(stderr, "Usagem errada\n");
+	    exit(0);
+	  }
+	  clnt = clnt_create(argv[1], PROG, VERSAO, "udp");
+	  if (clnt == (CLIENT *) NULL) {
+	    clnt_pcreateerror(argv[1]);
+	    exit(1);
+	  }
+	  x = atoi(argv[2]);
+	  y = atoi(argv[3]);
+	  printf("%d + %d = %d\n",x,y, add(clnt,x,y));
+	  printf("%d - %d = %d\n",x,y, sub(clnt,x,y));
+
+	  return 0;
+	}
+\end{lstlisting}
+
+\begin{lstlisting}[caption=calcula\_server.c]
+	int * add_100_svc(operandos *argp, struct svc_req *rqstp) {
+	  static int  result;
+
+	  printf("Requisicao de adicao para %d e %d\n", argp->x, argp->y);
+	  result = argp->x + argp->y;
+  
+	  return(&result);
+	}
+
+	int * sub_100_svc(operandos *argp, struct svc_req *rqstp) {
+	  static int  result;
+  
+	  printf("Requisicao de subtracao para %d e %d\n", argp->x, argp->y);
+	  result = argp->x - argp->y;
+  
+	  return(&result);
+	}
+\end{lstlisting}
+
+Para compilar o programa feito, o cliente e o servidor devem ser compilados separadamente:
+\begin{itemize}
+	\item servidor: ``gcc -o servidor calcula.h calcula\_svc.c calcula\_server.c calcula\_xdr.c''
+	\item cliente: ``gcc -o cliente calcula.h calcula\_clnt.c calcula\_client.c calcula\_xdr.c''
+\end{itemize}
+
+Depois basta executar o servidor, e a máquina que irá rodar o servidor deve estar com o portmapper
+ativado, no Linux e no Mac Os tem programa chamado ``rpcbind'' que também pode ser usado. Para executar
+o cliente tem que passar o \textit{host}, que no caso é o servidor pra poder executar o programa.
+Para executar o cliente também é necessário passar como argumento para o programa os números
+que o usuário quer que faça a soma e a subtração.
+
+\section{Projeto da Agenda Eletrônica}
+
+A agenda eletrônica envolve o uso de um banco de dados para armazenar entradas de
+uma agenda. Essa agenda armazena nome, endereço e telefone.
+
+O banco de dados que escolhemos usar para esse projeto é o MySQL Community Server\cite{mysql}.
+Tem uma base de dados com o nome de agenda, dentro desse banco tem uma tabela com o nome de
+``agendarpc''. Essa tabela contém os campos nome, endereço e telefone, em que o nome é a chave
+primária da tabela.
+
+\lstset{language=SQL}
+\begin{lstlisting}[caption=Comando no MySQL usado para criar a tabela]
+	CREATE TABLE agendarpc(
+		name VARCHAR(100) PRIMARY KEY,
+		addr VARCHAR(100),
+		phone VARCHAR(100)
+	);
+\end{lstlisting}
+
+\lstset{language=C}
+\begin{lstlisting}[caption=Struct para organizar os dados]
+	struct entry {
+		char *name;
+		char *addr;
+		char *phone;
+	};
+\end{lstlisting}
+
+O nosso programa tem 5 funções básicas: inicializar, inserir, alterar, remover e consultar.
+A função inicializar deleta todas as entradas da tabela do banco de dados e inserir todas 
+as entradas no arquivo ``entrada.txt''.
+
+\begin{lstlisting}[caption=Formato do arquivo de entrada para a função inicializar]
+	nome 1
+	
+	endereco 1
+	
+	telefone 1
+	
+	nome 2
+	
+	endereco 2
+	
+	telefone 2
+\end{lstlisting}
+
+A função inserir tem como objetivo inserir um conjunto de dados (nome, endereço e telefone).
+Para implementar essa função, a query é montada em uma string que então é passada para o banco
+de dados. A função de alterar, ela modifica os dados que estão na tabela do banco de dados.
+Remover retira uma tupla da tabela do banco de dados. A função de consultar retorna uma das 
+tuplas usando o nome para buscar.
+
+Abaixo tem as funções de inserir, alterar e remover, antes de aplicá-los no RPC.
+
+\lstset{language=C}
+\begin{lstlisting}
+	typedef struct entry entry;
+
+	struct entry {
+	  char *name;
+	  char *addr; 
+	  char *phone;
+	};
+	
+	void insert(MYSQL *conn, entry *data) {
+	  int n;
+	  char query[100];
+	  n = sprintf(query, "INSERT INTO teste VALUES('%s', '%s', '%s')", data->name, data->addr, data->phone);
+	  if (!mysql_query(conn, query)) 
+			printf("%s\n", mysql_error(conn));
+	}
+
+	int alter(MYSQL *conn, entry *old, entry *new) {
+	  int n;
+	  char query[100];
+	  n = sprintf(query, "UPDATE teste SET name='%s', address='%s', phone='%s' WHERE name='%s'", new->name, new->addr, new->phone, old->name);
+	  printf("%s\n", query);
+	  if (!mysql_query(conn, query)) 
+			printf("%s\n", mysql_error(conn));
+	} 
+
+	int delete(MYSQL *conn, entry *data) {
+	  int n;
+	  char query[100];
+	  n = sprintf(query, "DELETE FROM teste WHERE name='%s'", data->name);
+	  if (!mysql_query(conn, query)) 
+			printf("%s\n", mysql_error(conn));
+	}
+\end{lstlisting}
+
+\bibliography{reference}
+\bibliographystyle{unsrt}
+
 \end{document}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
