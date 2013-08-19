@@ -61,7 +61,8 @@ void insert(MYSQL *conn, entry *data) {
   int n;
   char query[100];
   n = sprintf(query, "INSERT INTO teste VALUES('%s', '%s', '%s')", data->name, data->addr, data->phone);
-  mysql_query(conn, query);
+  if (!mysql_query(conn, query)) 
+		printf("%s\n", mysql_error(conn));
 }
 
 int alter(MYSQL *conn, entry *old, entry *new) {
@@ -69,14 +70,16 @@ int alter(MYSQL *conn, entry *old, entry *new) {
   char query[100];
   n = sprintf(query, "UPDATE teste SET name='%s', address='%s', phone='%s' WHERE name='%s'", new->name, new->addr, new->phone, old->name);
   printf("%s\n", query);
-  if (!mysql_query(conn, query)) printf("%s\n", mysql_error(conn));
+  if (!mysql_query(conn, query)) 
+		printf("%s\n", mysql_error(conn));
 } 
 
 int delete(MYSQL *conn, entry *data) {
   int n;
   char query[100];
   n = sprintf(query, "DELETE FROM teste WHERE name='%s'", data->name);
-  mysql_query(conn, query);
+  if (!mysql_query(conn, query)) 
+		printf("%s\n", mysql_error(conn));
 }
 
 void list(MYSQL *conn) {
