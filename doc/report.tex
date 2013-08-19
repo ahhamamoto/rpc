@@ -40,12 +40,16 @@
 
 \section{Introdução ao RPC}
 
-O \textit{RPC(Remote Procedure Call)} define um protocolo para execução de procedimentos
+O \textit{RPC(Remote Procedure Call)}\cite{rfc1050} define um protocolo para execução de procedimentos
 remotos em computadore ligados em rede\cite{penta2}. O RPC é uma técnica muito poderosa para
 criar aplicações no estilo cliente-servidor distribuídas\cite{marshall}. O RPC consegue deixar
 transparente pro programador a interação entre a parte cliente e a parte servidor do 
 sistema, assim, o servidor e o cliente podem estar ou não na mesma máquina, compartilhando
 o mesmo espaço físico, ou podem estar conectados por meio de um servidor. 
+
+Um exemplo de aplicação do RPC é o NFS(Network File System)\cite{rfc1094}.
+Esse sistema provedencia um método transparente para para acesso remoto de dados 
+compartilhados sobre a rede.
 
 \section{Tutorial de RPC}
 
@@ -85,7 +89,7 @@ coloque o comando ``rpcgen -a calcula.x'', isso vai gerar os arquivos:
 	\item calcula\_clnt.c - stub do cliente
 	\item calcula\_client.c - programador que define o que acontece no lado do cliente
 	\item calcula\_server.c - programador define o que o que o servidor faz com a requisição do cliente
-	\item calcula.xdr - filtros de representações de dados externos(eXternal Data Representation)
+	\item calcula.xdr - filtros de representações de dados externos(eXternal Data Representation)\cite{rfc1014}
 \end{itemize}
 
 Os arquivos que precisamos nos preocupar são o calcula\_client.c e o calcula\_server.c, que são
@@ -125,6 +129,27 @@ No nosso exemplo tanto o servidor como cliente não tem muito o que ser feito.
 	  }
 	  return (*result);
 	}
+	
+	int main(int argc, char **argv) {
+	  CLIENT *clnt;
+	  int x, y;
+
+	  if (argc != 4) {
+	    fprintf(stderr, "Usagem errada\n");
+	    exit(0);
+	  }
+	  clnt = clnt_create(argv[1], PROG, VERSAO, "udp");
+	  if (clnt == (CLIENT *) NULL) {
+	    clnt_pcreateerror(argv[1]);
+	    exit(1);
+	  }
+	  x = atoi(argv[2]);
+	  y = atoi(argv[3]);
+	  printf("%d + %d = %d\n",x,y, add(clnt,x,y));
+	  printf("%d - %d = %d\n",x,y, sub(clnt,x,y));
+
+	  return 0;
+	}
 \end{lstlisting}
 
 \begin{lstlisting}[caption=calcula\_server.c]
@@ -152,6 +177,12 @@ Para compilar o programa feito, o cliente e o servidor devem ser compilados sepa
 	\item servidor: ``gcc -o servidor calcula.h calcula\_svc.c calcula\_server.c calcula\_xdr.c''
 	\item cliente: ``gcc -o cliente calcula.h calcula\_clnt.c calcula\_client.c calcula\_xdr.c''
 \end{itemize}
+
+Depois basta executar o servidor, e a máquina que irá rodar o servidor deve estar com o portmapper
+ativado, no Linux e no Mac Os tem programa chamado ``rpcbind'' que também pode ser usado. Para executar
+o cliente tem que passar o \textit{host}, que no caso é o servidor pra poder executar o programa.
+Para executar o cliente também é necessário passar como argumento para o programa os números
+que o usuário quer que faça a soma e a subtração.
 
 \section{Projeto da Agenda Eletrônica}
 
