@@ -8,6 +8,19 @@
 #include <stdlib.h>
 #include "agenda.h"
 
+int menu(void) {
+	int choice;
+	printf("Escolha uma das opcoes abaixo:\n\n");
+	printf("1 - Inicializar\n");
+	printf("2 - Inserir uma entrada\n");
+	printf("3 - Remover uma entrada\n");
+	printf("4 - Consultar uma entrada(nao implementada)\n");
+	printf("5 - Listar as entradas\n");
+	printf("0 - Sair do programa\n");
+	scanf("%d", &choice);
+	return choice;
+}
+
 void initialize(CLIENT *clnt) {
 	initialize_10(NULL, clnt);
 }
@@ -101,8 +114,23 @@ char *argv[];
 	CLIENT *clnt;
 	clnt = clnt_create(argv[1], PROG, VERSION, "udp");
 	
-	printf("initialize\n");
-	initialize(clnt);
-	printf("insert\n");
-	insert(clnt);
+	int choice;
+	do {
+		choice = menu();
+	} while(choice != 0);
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
