@@ -20,106 +20,106 @@ static MYSQL_ROW *row = NULL;
 
 int *
 insert_110_svc(entry *argp, struct svc_req *rqstp) {
-	static int  result=0;
+  static int  result=0;
 	
-	//conexão com o banco
-	MYSQL *conn;
-	conn = mysql_init(NULL);
-	mysql_real_connect(conn, server, user, password, database, 0, NULL, 0);
+  //conexão com o banco
+  MYSQL *conn;
+  conn = mysql_init(NULL);
+  mysql_real_connect(conn, server, user, password, database, 0, NULL, 0);
 
-	char query[300];
+  char query[300];
 
-	result = sprintf(query, "INSERT INTO %s VALUES('%s', '%s', '%s')", database, argp->name.name_val, argp->addr.addr_val, argp->phone.phone_val);
-	printf("%s\n", query);
-	result = mysql_query(conn, query);
+  result = sprintf(query, "INSERT INTO %s VALUES('%s', '%s', '%s')", database, argp->name.name_val, argp->addr.addr_val, argp->phone.phone_val);
+  printf("%s\n", query);
+  result = mysql_query(conn, query);
 
-	mysql_close(conn);
+  mysql_close(conn);
 	
-	return (&result);
+  return (&result);
 }
 
 int *alter_110_svc(entries *argp, struct svc_req *rqstp) {
-	static int  result=0;
-	//conexão com o banco
-	MYSQL *conn;
-	conn = mysql_init(NULL);
-	mysql_real_connect(conn, server, user, password, database, 0, NULL, 0);
+  static int  result=0;
+  //conexão com o banco
+  MYSQL *conn;
+  conn = mysql_init(NULL);
+  mysql_real_connect(conn, server, user, password, database, 0, NULL, 0);
 	
-	char query[300];
-	result = sprintf(query, "UPDATE %s SET nome='%s', endereco='%s', telefone='%s' WHERE nome='%s'", database, argp->new->name.name_val, argp->new->addr.addr_val, argp->new->phone.phone_val, argp->old->name.name_val);
-	printf("%s\n", query);
-	if (!mysql_query(conn, query)) 
-		printf("%s\n", mysql_error(conn));
-	mysql_close(conn);
-	return &result;
+  char query[300];
+  result = sprintf(query, "UPDATE %s SET nome='%s', endereco='%s', telefone='%s' WHERE nome='%s'", database, argp->new->name.name_val, argp->new->addr.addr_val, argp->new->phone.phone_val, argp->old->name.name_val);
+  printf("%s\n", query);
+  if (!mysql_query(conn, query)) 
+    printf("%s\n", mysql_error(conn));
+  mysql_close(conn);
+  return &result;
 }
 
 int *delete_110_svc(entry *argp, struct svc_req *rqstp) {
-	static int  result=0;
-	//conexão com o banco
-	MYSQL *conn;
-	conn = mysql_init(NULL);
-	mysql_real_connect(conn, server, user, password, database, 0, NULL, 0);
+  static int  result=0;
+  //conexão com o banco
+  MYSQL *conn;
+  conn = mysql_init(NULL);
+  mysql_real_connect(conn, server, user, password, database, 0, NULL, 0);
 
 
-	char query[150];
-	result = sprintf(query, "DELETE FROM %s WHERE nome='%s'", database, argp->name.name_val);
-	mysql_query(conn, query);
+  char query[150];
+  result = sprintf(query, "DELETE FROM %s WHERE nome='%s'", database, argp->name.name_val);
+  mysql_query(conn, query);
 
 
-	mysql_close(conn);
-	return &result;
+  mysql_close(conn);
+  return &result;
 }
 
 int *drop_110_svc(void *argp, struct svc_req *rqstp) {
-	//conexão com o banco
-	static int  result=0;
-	MYSQL *conn;
-	conn = mysql_init(NULL);
-	char query[100];
-	mysql_real_connect(conn, server, user, password, database, 0, NULL, 0);
+  //conexão com o banco
+  static int  result=0;
+  MYSQL *conn;
+  conn = mysql_init(NULL);
+  char query[100];
+  mysql_real_connect(conn, server, user, password, database, 0, NULL, 0);
 
-	sprintf(query,"DELETE FROM %s",database);
-	if (conn != NULL) {
-		mysql_query(conn, query);
-		printf("%s\n", query);
-	} else {
-		fprintf(stderr, "Erro!!");
-		result = 1;
-	}
-	iterator = NULL;
-	mysql_free_result(res);
-	return &result;
+  sprintf(query,"DELETE FROM %s",database);
+  if (conn != NULL) {
+    mysql_query(conn, query);
+    printf("%s\n", query);
+  } else {
+    fprintf(stderr, "Erro!!");
+    result = 1;
+  }
+  iterator = NULL;
+  mysql_free_result(res);
+  return &result;
 }
 
 
 entry *consult_110_svc(entry *argp, struct svc_req *rqstp) {
-	static entry result;
-	result.name.name_val = malloc(100 * sizeof(char));
-	result.addr.addr_val = malloc(100 * sizeof(char));
-	result.phone.phone_val = malloc(100 * sizeof(char));
+  static entry result;
+  result.name.name_val = malloc(100 * sizeof(char));
+  result.addr.addr_val = malloc(100 * sizeof(char));
+  result.phone.phone_val = malloc(100 * sizeof(char));
 
-	//conexão com o banco
-	MYSQL *conn;
-	conn = mysql_init(NULL);
-	char query[150];
+  //conexão com o banco
+  MYSQL *conn;
+  conn = mysql_init(NULL);
+  char query[150];
 
-	mysql_real_connect(conn, server, user, password, database, 0, NULL, 0);
-	sprintf(query, "SELECT * FROM %s where name='%s'",database,argp->name.name_val);
-	printf("%s\n",query );
+  mysql_real_connect(conn, server, user, password, database, 0, NULL, 0);
+  sprintf(query, "SELECT * FROM %s where name='%s'",database,argp->name.name_val);
+  printf("%s\n",query );
 
 		
-	mysql_query(conn, query);
-	res = mysql_use_result(conn);
-	if ((row = (MYSQL_ROW *) mysql_fetch_row(res))!=NULL) {
-		result.name.name_val = (char*) row[0];
-		result.name.name_len = (unsigned) strlen((char*)row[0]);
-		result.addr.addr_val = (char*) row[1];
-		result.addr.addr_len = (unsigned) strlen((char*)row[1]);
-		result.phone.phone_val = (char*) row[2];
-		result.phone.phone_len = (unsigned) strlen((char*)row[2]);
-	}
-	mysql_free_result(res);
-	return (&result);
+  mysql_query(conn, query);
+  res = mysql_use_result(conn);
+  if ((row = (MYSQL_ROW *) mysql_fetch_row(res))!=NULL) {
+    result.name.name_val = (char*) row[0];
+    result.name.name_len = (unsigned) strlen((char*)row[0]);
+    result.addr.addr_val = (char*) row[1];
+    result.addr.addr_len = (unsigned) strlen((char*)row[1]);
+    result.phone.phone_val = (char*) row[2];
+    result.phone.phone_len = (unsigned) strlen((char*)row[2]);
+  }
+  mysql_free_result(res);
+  return (&result);
 }
 
