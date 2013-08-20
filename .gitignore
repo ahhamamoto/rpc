@@ -1,6 +1,12 @@
+*.aux
+*.bbl
+*.blg
+*.log
 a.out
 *.*~
 calcula_client
 calcula_cliente
 calcula_server
 calcula_servidor
+address_book_client
+address_book_server

@@ -19,8 +19,7 @@ static MYSQL_ROW *row = NULL;
 
 
 int *
-insert_110_svc(entry *argp, struct svc_req *rqstp)
-{
+insert_110_svc(entry *argp, struct svc_req *rqstp) {
 	static int  result=0;
 	
 	//conexão com o banco
@@ -32,7 +31,6 @@ insert_110_svc(entry *argp, struct svc_req *rqstp)
 
 	result = sprintf(query, "INSERT INTO %s VALUES('%s', '%s', '%s')", database, argp->name.name_val, argp->addr.addr_val, argp->phone.phone_val);
 	printf("%s\n", query);
-	//printf("nome: %c\n", argp->name);
 	result = mysql_query(conn, query);
 
 	mysql_close(conn);
@@ -40,10 +38,9 @@ insert_110_svc(entry *argp, struct svc_req *rqstp)
 	return (&result);
 }
 
-int *
-alter_110_svc(entries *argp, struct svc_req *rqstp)
-{
-	static int  result=0;	//conexão com o banco
+int *alter_110_svc(entries *argp, struct svc_req *rqstp) {
+	static int  result=0;
+	//conexão com o banco
 	MYSQL *conn;
 	conn = mysql_init(NULL);
 	mysql_real_connect(conn, server, user, password, database, 0, NULL, 0);
@@ -57,9 +54,7 @@ alter_110_svc(entries *argp, struct svc_req *rqstp)
 	return &result;
 }
 
-int *
-delete_110_svc(entry *argp, struct svc_req *rqstp)
-{
+int *delete_110_svc(entry *argp, struct svc_req *rqstp) {
 	static int  result=0;
 	//conexão com o banco
 	MYSQL *conn;
@@ -76,9 +71,7 @@ delete_110_svc(entry *argp, struct svc_req *rqstp)
 	return &result;
 }
 
-int *
-drop_110_svc(void *argp, struct svc_req *rqstp)
-{
+int *drop_110_svc(void *argp, struct svc_req *rqstp) {
 	//conexão com o banco
 	static int  result=0;
 	MYSQL *conn;
@@ -100,9 +93,7 @@ drop_110_svc(void *argp, struct svc_req *rqstp)
 }
 
 
-entry *
-consult_110_svc(entry *argp, struct svc_req *rqstp)
-{
+entry *consult_110_svc(entry *argp, struct svc_req *rqstp) {
 	static entry result;
 	result.name.name_val = malloc(100 * sizeof(char));
 	result.addr.addr_val = malloc(100 * sizeof(char));
@@ -120,7 +111,7 @@ consult_110_svc(entry *argp, struct svc_req *rqstp)
 		
 	mysql_query(conn, query);
 	res = mysql_use_result(conn);
-	if((row = (MYSQL_ROW *) mysql_fetch_row(res))!=NULL){
+	if ((row = (MYSQL_ROW *) mysql_fetch_row(res))!=NULL) {
 		result.name.name_val = (char*) row[0];
 		result.name.name_len = (unsigned) strlen((char*)row[0]);
 		result.addr.addr_val = (char*) row[1];
